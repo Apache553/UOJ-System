@@ -32,6 +32,13 @@
 		},
 		null
 	);
+	$time_form->addInput(
+		'passwd', 'text', '报名的密码(不需要请留空)', '',
+		function($str) {
+			return '';
+		},
+		null
+	);
 	$time_form->handle = function(&$vdata) {
 		$start_time_str = $vdata['start_time']->format('Y-m-d H:i:s');
 				
@@ -41,7 +48,12 @@
 		$esc_name = $purifier->purify($esc_name);
 		$esc_name = DB::escape($esc_name);
 		
-		DB::query("insert into contests (name, start_time, last_min, status) values ('$esc_name', '$start_time_str', ${_POST['last_min']}, 'unfinished')");
+		$passwd = $_POST['passwd'];
+		if (strlen($passwd)!=0) {
+			$passwd = base64_encode($passwd);
+		}
+		
+		DB::query("insert into contests (name, start_time, last_min, status, password) values ('$esc_name', '$start_time_str', ${_POST['last_min']}, 'unfinished', '$passwd')");
 	};
 	$time_form->succ_href="/contests";
 	$time_form->runAtServer();

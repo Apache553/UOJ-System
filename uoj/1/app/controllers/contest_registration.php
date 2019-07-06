@@ -12,6 +12,20 @@
 	}
 	
 	$register_form = new UOJForm('register');
+	$passwd_result = DB::query("select password from contests where id = {$contest['id']}");
+	$passwd = DB::fetch($passwd_result)['password'];
+	if(strlen($passwd) != 0) {
+		$register_form->addInput(
+			'passwd', 'password', '报名密码', '',
+			function($str) use ($passwd) {
+				if($passwd != base64_encode($_POST['passwd'])){
+					return '密码错误';
+				}
+				return '';
+			},
+			null
+		);
+	}
 	$register_form->handle = function() {
 		global $myUser, $contest;
 		DB::query("insert into contests_registrants (username, user_rating, contest_id, has_participated) values ('{$myUser['username']}', {$myUser['rating']}, {$contest['id']}, 0)");
