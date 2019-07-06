@@ -43,5 +43,7 @@ return [
 	'submission id' => '提交记录ID',
 	'my submissions' => '我的提交记录',
 	'hacks by me' => '我的Hack记录',
-	'hacks to me' => '我的被Hack记录'
+	'hacks to me' => '我的被Hack记录',
+	'time limit' => '时间限制',
+	'memory limit' => '空间限制'
 ];

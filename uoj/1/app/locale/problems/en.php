@@ -43,5 +43,7 @@ return [
 	'submission id' => 'Submission ID',
 	'my submissions' => 'My Submissions',
 	'hacks by me' => 'Hacks by me',
-	'hacks to me' => 'Hacks to me'
+	'hacks to me' => 'Hacks to me',
+	'time limit' => 'Time Limit',
+	'memory limit' => 'Memory Limit'
 ];

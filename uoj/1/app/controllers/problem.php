@@ -244,6 +244,13 @@ $('#contest-countdown').countdown(<?= $contest['end_time']->getTimestamp() - UOJ
 </ul>
 <div class="tab-content">
 	<div class="tab-pane active" id="tab-statement">
+		<?php
+			$data_dir = "/var/uoj_data/${problem['id']}";
+			$problem_conf = getUOJConf("$data_dir/problem.conf");
+			if ($problem_conf != -1 && $problem_conf != -2):
+		?>
+		<h5 align="center"><?= UOJLocale::get('problems::time limit') ?>: <?=$problem_conf['time_limit'] ?>s &emsp; <?= UOJLocale::get('problems::memory limit') ?>: <?=$problem_conf['memory_limit'] ?>MB</h5>
+		<?php endif ?>
 		<article class="top-buffer-md"><?= $problem_content['statement'] ?></article>
 	</div>
 	<div class="tab-pane" id="tab-submit-answer">
