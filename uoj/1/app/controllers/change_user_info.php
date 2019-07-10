@@ -56,6 +56,11 @@
 			DB::update("update user_info set motto = '$esc_motto' where username = '{$myUser['username']}'");
 		}
 		
+		if (validateNickname($_POST['nickname'])) {
+			$esc_nickname = DB::escape($_POST['nickname']);
+			DB::update("update user_info set nickname = '$esc_nickname' where username = '{$myUser['username']}'");
+		}
+		
 		return "ok";
 	}
 	if (isset($_POST['change'])) {
@@ -84,6 +89,13 @@
 			<input type="password" class="form-control" id="input-password" name="password" placeholder="<?= UOJLocale::get('enter your new password') ?>" maxlength="20" />
 			<input type="password" class="form-control top-buffer-sm" id="input-confirm_password" placeholder="<?= UOJLocale::get('re-enter your new password') ?>" maxlength="20" />
 			<span class="help-block" id="help-password"><?= UOJLocale::get('leave it blank if you do not want to change the password') ?></span>
+		</div>
+	</div>
+	<div id="div-nickname" class="form-group">
+		<label for="input-nickname" class="col-sm-2 control-label"><?= UOJLocale::get('nickname') ?></label>
+		<div class="col-sm-3">
+			<input type="text" class="form-control" name="nickname" id="input-nickname" value="<?=HTML::escape($myUser['nickname'])?>" placeholder="<?= UOJLocale::get('enter your nickname') ?>" maxlength="30" />
+			<span class="help-block" id="help-nickname"></span>
 		</div>
 	</div>
 	<div id="div-email" class="form-group">
@@ -140,6 +152,7 @@
 		if ($('#input-qq').val().length > 0)
 			ok &= getFormErrorAndShowHelp('qq', validateQQ);
 		ok &= getFormErrorAndShowHelp('motto', validateMotto);
+		ok &= getFormErrorAndShowHelp('nickname', validateNickname);
 		return ok;
 	}
 	function submitUpdatePost() {
@@ -155,7 +168,8 @@
 			old_password : md5($('#input-old_password').val(), "<?= getPasswordClientSalt() ?>"),
 			qq       : $('#input-qq').val(),
 			sex      : $('#input-sex').val(),
-			motto    : $('#input-motto').val()
+			motto    : $('#input-motto').val(),
+			nickname : $('#input-nickname').val()
 		}, function(msg) {
 			if (msg == 'ok') {
 				BootstrapDialog.show({

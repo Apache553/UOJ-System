@@ -1,1 +1,1 @@
-ALTER TABLE uoj.contests DROP COLUMN password;
+ALTER TABLE contests DROP COLUMN password;

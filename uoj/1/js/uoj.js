@@ -278,6 +278,13 @@ function validateMotto(str) {
 		return '';
 	}
 }
+function validateNickname(str) {
+	if (str.length > 30) {
+		return '不能超过30字';
+	} else {
+		return '';
+	}
+}
 
 // tags
 $.fn.uoj_problem_tag = function() {

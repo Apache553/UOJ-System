@@ -9,6 +9,7 @@
 		$esc_email = HTML::escape($user['email']);
 		$esc_qq = HTML::escape($user['qq'] != 0 ? $user['qq'] : 'Unfilled');
 		$esc_sex = HTML::escape($user['sex']);
+		$esc_nickname = HTML::escape($user['nickname']);
 		$col_sex="color:blue";
 		if($esc_sex == "M") {
 			$esc_sex="♂";
@@ -35,6 +36,10 @@
 				<div class="col-md-8 col-md-pull-4">
 					<h2><span class="uoj-honor" data-rating="<?= $user['rating'] ?>"><?= $user['username'] ?></span> <span><strong style="<?= $col_sex ?>"><?= $esc_sex ?></strong></span></h2>
 					<div class="list-group">
+						<div class="list-group-item">
+							<h4 class="list-group-item-heading"><?= UOJLocale::get('nickname') ?></h4>
+							<p class="list-group-item-text"><?= $esc_nickname ?></p>
+						</div>
 						<div class="list-group-item">
 							<h4 class="list-group-item-heading"><?= UOJLocale::get('rating') ?></h4>
 							<p class="list-group-item-text"><strong style="color:red"><?= $user['rating'] ?></strong></p>
