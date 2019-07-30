@@ -43,6 +43,52 @@
 	};
 	$user_form->runAtServer();
 	
+	$batchreg_form = new UOJForm('batchreg');
+	$batchreg_form->addTextArea('regsheet','注册信息','email,username,password',
+		function($text){
+			$text=trim($text);
+			$lines=explode(PHP_EOL,$text);
+			foreach($lines as $line){
+				$line=trim($line);
+				if($line=="")continue;
+				list($email, $username, $passwd) = explode(',',$line);
+				$email=trim($email);
+				$username=trim($username);
+				$passwd=trim($passwd);
+				if (!validateUsername($username)) {
+					return "无效用户名,在: {$line}";
+				}
+				if (queryUser($username)) {
+					return "用户名已存在,在: {$line}";
+				}
+				if (!validatePassword($passwd)) {
+					return "无效密码,在: {$line}";
+				}
+				if (!validateEmail($email)) {
+					return "无效电子邮箱,在: {$line}";
+				}
+			}
+			return '';
+		},null);
+	$batchreg_form->handle = function() {
+			global $batchreg_form;
+			$text=trim($_POST['regsheet']);
+			$lines=explode(PHP_EOL,$text);
+			foreach($lines as $line){
+				$line=trim($line);
+				if($line=="")continue;
+				list($email, $username, $passwd) = explode(',',$line);
+				$email=trim($email);
+				$username=trim($username);
+				$passwd=trim($passwd);
+				$passwd = getPasswordToStore($passwd, $username);
+				$esc_email = DB::escape($email);
+				$svn_pw = uojRandString(10);
+				DB::query("insert into user_info (username, email, password, svn_password, register_time, nickname) values ('$username', '$esc_email', '$passwd', '$svn_pw', now(), '$username')");
+			}
+	};
+	$batchreg_form->runAtServer();
+	
 	$blog_link_contests = new UOJForm('blog_link_contests');
 	$blog_link_contests->addInput('blog_id', 'text', '博客ID', '',
 		function ($x) {
@@ -259,6 +305,9 @@ EOD;
 	}
 ?>
 <?php
+	$REQUIRE_LIB['md5'] = '';
+?>
+<?php
 	requireLib('shjs');
 	requireLib('morris');
 ?>
@@ -270,9 +319,38 @@ EOD;
 	
 	<div class="col-sm-9">
 		<?php if ($cur_tab === 'users'): ?>
+			<h3>用户操作</h3>
 			<?php $user_form->printHTML(); ?>
+			<h3>批量注册</h3>
+			<?php $batchreg_form->printHTML(); ?>
+			<div class='text-center'><button type="button" id="button-batchreg-salty" name="salty-batchreg" value="salty-batchreg" class="btn btn-default">预处理</button></div>
 			<h3>封禁名单</h3>
 			<?php echoLongTable($banlist_cols, 'user_info', "usergroup='B'", '', $banlist_header_row, $banlist_print_row, $banlist_config) ?>
+			<script type="text/javascript">
+				preprocessed=0;
+				$(document).ready(function(){
+					$('#button-batchreg-salty').click(function(e){
+						if(preprocessed==1){
+							alert('只能预处理一次，请刷新重来');
+							return;
+						}
+						text=$('#input-regsheet').val();
+						lines=text.split('\n');
+						output='';
+						lines.forEach(function(val,idx,arr){
+							if(val.trim()=="")return;
+							parts=val.split(',');
+							email=parts[0];
+							username=parts[1];
+							password=parts[2];
+							password=md5(password, "<?= getPasswordClientSalt() ?>")
+							output=output+email+','+username+','+password+'\n';
+						})
+						$('#input-regsheet').val(output);
+						preprocessed=1;
+					})
+				})
+			</script>
 		<?php elseif ($cur_tab === 'blogs'): ?>
 			<div>
 				<h4>添加到比赛链接</h4>
