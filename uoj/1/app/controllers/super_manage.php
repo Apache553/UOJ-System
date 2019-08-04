@@ -46,41 +46,33 @@
 	$batchreg_form = new UOJForm('batchreg');
 	$batchreg_form->addTextArea('regsheet','注册信息','email,username,password',
 		function($text){
-			$text=trim($text);
-			$lines=explode(PHP_EOL,$text);
-			foreach($lines as $line){
-				$line=trim($line);
-				if($line=="")continue;
-				list($email, $username, $passwd) = explode(',',$line);
-				$email=trim($email);
-				$username=trim($username);
-				$passwd=trim($passwd);
+			$regdata=json_decode($text);
+			foreach($regdata as $regentry){
+				$email=$regentry->email;
+				$username=$regentry->username;
+				$passwd=$regentry->password;
 				if (!validateUsername($username)) {
-					return "无效用户名,在: {$line}";
+					return "无效用户名: {$username}";
 				}
 				if (queryUser($username)) {
-					return "用户名已存在,在: {$line}";
+					return "用户名已存在: {$username}";
 				}
 				if (!validatePassword($passwd)) {
-					return "无效密码,在: {$line}";
+					return "无效密码, 属于: {$username}";
 				}
 				if (!validateEmail($email)) {
-					return "无效电子邮箱,在: {$line}";
+					return "无效电子邮箱: {$email}";
 				}
 			}
 			return '';
 		},null);
 	$batchreg_form->handle = function() {
 			global $batchreg_form;
-			$text=trim($_POST['regsheet']);
-			$lines=explode(PHP_EOL,$text);
-			foreach($lines as $line){
-				$line=trim($line);
-				if($line=="")continue;
-				list($email, $username, $passwd) = explode(',',$line);
-				$email=trim($email);
-				$username=trim($username);
-				$passwd=trim($passwd);
+			$regdata=json_decode($_POST['regsheet']);
+			foreach($regdata as $regentry){
+				$email=$regentry->email;
+				$username=$regentry->username;
+				$passwd=$regentry->password;
 				$passwd = getPasswordToStore($passwd, $username);
 				$esc_email = DB::escape($email);
 				$svn_pw = uojRandString(10);
@@ -306,6 +298,7 @@ EOD;
 ?>
 <?php
 	$REQUIRE_LIB['md5'] = '';
+	$REQUIRE_LIB['papaparse'] = '';
 ?>
 <?php
 	requireLib('shjs');
@@ -323,33 +316,47 @@ EOD;
 			<?php $user_form->printHTML(); ?>
 			<h3>批量注册</h3>
 			<?php $batchreg_form->printHTML(); ?>
-			<div class='text-center'><button type="button" id="button-batchreg-salty" name="salty-batchreg" value="salty-batchreg" class="btn btn-default">预处理</button></div>
+			<div class='text-center'><button type="button" id="button-batchreg-salty" name="salty-batchreg" value="salty-batchreg" class="btn btn-default">提交</button></div>
 			<h3>封禁名单</h3>
 			<?php echoLongTable($banlist_cols, 'user_info', "usergroup='B'", '', $banlist_header_row, $banlist_print_row, $banlist_config) ?>
 			<script type="text/javascript">
-				preprocessed=0;
 				$(document).ready(function(){
+					$('#button-submit-batchreg').remove();
+					$('#form-batchreg').append('<input type="hidden" name="submit-batchreg" value="batchreg">');
 					$('#button-batchreg-salty').click(function(e){
-						if(preprocessed==1){
-							alert('只能预处理一次，请刷新重来');
+						var text=$('#input-regsheet').val();
+						var result=Papa.parse(text);
+						var errmsg="";
+						result.errors.forEach(function(val,idx,arr){
+							errmsg=errmsg+"Position: "+val.index+"\nRow: "+val.row+"\nMessage: "+val.message+"\n\n";
+						});
+						if(errmsg!=""){
+							alert("Error occurred!\n\n"+errmsg);
 							return;
 						}
-						text=$('#input-regsheet').val();
-						lines=text.split('\n');
-						output='';
-						lines.forEach(function(val,idx,arr){
-							if(val.trim()=="")return;
-							parts=val.split(',');
-							email=parts[0];
-							username=parts[1];
-							password=parts[2];
-							password=md5(password, "<?= getPasswordClientSalt() ?>")
-							output=output+email+','+username+','+password+'\n';
-						})
-						$('#input-regsheet').val(output);
-						preprocessed=1;
-					})
-				})
+						var post_data=new Array();
+						var err_flag=false;
+						result.data.every(function(val,idx,arr){
+							var account=new Object();
+							if(val.length<3){
+								alert("Bad Data: Too few row: "+idx);
+								err_flag=true;
+								return false;
+							}
+							account.email=val[0];
+							account.username=val[1];
+							account.password=md5(val[2], "<?= getPasswordClientSalt() ?>");
+							post_data.push(account);
+							return true;
+						});
+						if(err_flag)return;
+						var json_data=JSON.stringify(post_data);
+						console.log(json_data);
+						$("#input-regsheet").val(json_data);
+						$('#form-batchreg').submit();
+						$("#input-regsheet").val(text);
+					});
+				});
 			</script>
 		<?php elseif ($cur_tab === 'blogs'): ?>
 			<div>
