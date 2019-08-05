@@ -20,7 +20,7 @@ getAptPackage(){
     echo "deb http://ppa.launchpad.net/pinepain/libv8/ubuntu artful main" | tee /etc/apt/sources.list.d/pinepain-libv8.list && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 60C60AA4
     apt-get update && apt-get install -y vim ntp zip unzip curl wget subversion apache2 libapache2-mod-xsendfile libapache2-mod-php php php-dev php-pear php-zip php-mysql php-mbstring mysql-server cmake fp-compiler re2c libv8-6.6-dev libyaml-dev python python3 python-requests
     #Install PHP extensions
-    cp -a /opt/libv8*/* /usr && printf "\n\n" | pecl install v8js yaml
+    cp -a /opt/libv8*/* /usr && printf "\n\n" | pecl install v8js-2.1.0 yaml
 }
 
 getOracleJDK(){
@@ -206,9 +206,6 @@ cat >uoj_judger/include/uoj_work_path.h <<UOJEOF
 UOJEOF
 cd uoj_judger && make -j$(($(grep -c ^processor /proc/cpuinfo) + 1))
 mkdir ~/judge_client/uoj_judger/run/runtime && cd ~/judge_client/uoj_judger/run/runtime
-mv ~/jdkdist.list ~/jdk-*-linux-x64.tar.gz .
-tar -xzf jdk-7*-linux-x64.tar.gz && tar -xzf jdk-8*-linux-x64.tar.gz
-mv jdk1.7* jdk1.7.0 && mv jdk1.8* jdk1.8.0
 EOD
     #Set judge_client config file
     cat >/home/local_main_judger/judge_client/.conf.json <<UOJEOF
@@ -250,7 +247,7 @@ initProgress(){
 }
 
 prepProgress(){
-    getAptPackage;getOracleJDK;setLAMPConf;setSVNServe;setWebConf;setJudgeConf
+    getAptPackage;setLAMPConf;setSVNServe;setWebConf;setJudgeConf
 }
 
 if [ $# -le 0 ] ;then
