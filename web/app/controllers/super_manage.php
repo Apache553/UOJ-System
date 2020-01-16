@@ -43,6 +43,44 @@
 	};
 	$user_form->runAtServer();
 	
+	$batchreg_form = new UOJForm('batchreg');
+	$batchreg_form->addTextArea('regsheet','注册信息','email,username,password',
+		function($text){
+			$regdata=json_decode($text);
+			foreach($regdata as $regentry){
+				$email=$regentry->email;
+				$username=$regentry->username;
+				$passwd=$regentry->password;
+				if (!validateUsername($username)) {
+					return "无效用户名: {$username}";
+				}
+				if (queryUser($username)) {
+					return "用户名已存在: {$username}";
+				}
+				if (!validatePassword($passwd)) {
+					return "无效密码, 属于: {$username}";
+				}
+				if (!validateEmail($email)) {
+					return "无效电子邮箱: {$email}";
+				}
+			}
+			return '';
+		},null);
+	$batchreg_form->handle = function() {
+			global $batchreg_form;
+			$regdata=json_decode($_POST['regsheet']);
+			foreach($regdata as $regentry){
+				$email=$regentry->email;
+				$username=$regentry->username;
+				$passwd=$regentry->password;
+				$passwd = getPasswordToStore($passwd, $username);
+				$esc_email = DB::escape($email);
+				$svn_pw = uojRandString(10);
+				DB::query("insert into user_info (username, email, password, svn_password, register_time, nickname) values ('$username', '$esc_email', '$passwd', '$svn_pw', now(), '$username')");
+			}
+	};
+	$batchreg_form->runAtServer();
+	
 	$blog_link_contests = new UOJForm('blog_link_contests');
 	$blog_link_contests->addInput('blog_id', 'text', '博客ID', '',
 		function ($x) {
@@ -319,6 +357,10 @@ EOD;
 	}
 ?>
 <?php
+	$REQUIRE_LIB['md5'] = '';
+	$REQUIRE_LIB['papaparse'] = '';
+?>
+<?php
 	requireLib('shjs');
 	requireLib('morris');
 ?>
@@ -330,9 +372,52 @@ EOD;
 	
 	<div class="col-sm-9">
 		<?php if ($cur_tab === 'users'): ?>
+			<h3>用户操作</h3>
 			<?php $user_form->printHTML(); ?>
+			<h3>批量注册</h3>
+			<?php $batchreg_form->printHTML(); ?>
+			<div class='text-center'><button type="button" id="button-batchreg-salty" name="salty-batchreg" value="salty-batchreg" class="btn btn-default">提交</button></div>
 			<h3>封禁名单</h3>
 			<?php echoLongTable($banlist_cols, 'user_info', "usergroup='B'", '', $banlist_header_row, $banlist_print_row, $banlist_config) ?>
+			<script type="text/javascript">
+				$(document).ready(function(){
+					$('#button-submit-batchreg').remove();
+					$('#form-batchreg').append('<input type="hidden" name="submit-batchreg" value="batchreg">');
+					$('#button-batchreg-salty').click(function(e){
+						var text=$('#input-regsheet').val();
+						var result=Papa.parse(text);
+						var errmsg="";
+						result.errors.forEach(function(val,idx,arr){
+							errmsg=errmsg+"Position: "+val.index+"\nRow: "+val.row+"\nMessage: "+val.message+"\n\n";
+						});
+						if(errmsg!=""){
+							alert("Error occurred!\n\n"+errmsg);
+							return;
+						}
+						var post_data=new Array();
+						var err_flag=false;
+						result.data.every(function(val,idx,arr){
+							var account=new Object();
+							if(val.length<3){
+								alert("Bad Data: Too few row: "+idx);
+								err_flag=true;
+								return false;
+							}
+							account.email=val[0];
+							account.username=val[1];
+							account.password=md5(val[2], "<?= getPasswordClientSalt() ?>");
+							post_data.push(account);
+							return true;
+						});
+						if(err_flag)return;
+						var json_data=JSON.stringify(post_data);
+						console.log(json_data);
+						$("#input-regsheet").val(json_data);
+						$('#form-batchreg').submit();
+						$("#input-regsheet").val(text);
+					});
+				});
+			</script>
 		<?php elseif ($cur_tab === 'blogs'): ?>
 			<div>
 				<h4>添加到比赛链接</h4>

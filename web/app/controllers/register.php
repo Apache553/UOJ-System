@@ -1,5 +1,6 @@
 <?php
-	function handleRegisterPost() {
+become403Page();
+function handleRegisterPost() {
 		if (!crsf_check()) {
 			return '页面已过期';
 		}

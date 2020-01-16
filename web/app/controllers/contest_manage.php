@@ -37,6 +37,13 @@
 		},
 		null
 	);
+	$time_form->addInput(
+		'passwd', 'text', '报名的密码(留空将取消)', base64_decode($contest['password']),
+		function($str) {
+			return '';
+		},
+		null
+	);
 	$time_form->handle = function(&$vdata) {
 		global $contest;
 		$start_time_str = $vdata['start_time']->format('Y-m-d H:i:s');
@@ -46,8 +53,13 @@
 		$esc_name = $_POST['name'];
 		$esc_name = $purifier->purify($esc_name);
 		$esc_name = DB::escape($esc_name);
+
+		$passwd = $_POST['passwd'];
+		if (strlen($passwd)!=0) {
+			$passwd = base64_encode($passwd);
+		}
 		
-		DB::update("update contests set start_time = '$start_time_str', last_min = {$_POST['last_min']}, name = '$esc_name' where id = {$contest['id']}");
+		DB::update("update contests set start_time = '$start_time_str', last_min = {$_POST['last_min']}, name = '$esc_name', password = '$passwd' where id = {$contest['id']}");
 	};
 	
 	$managers_form = newAddDelCmdForm('managers',

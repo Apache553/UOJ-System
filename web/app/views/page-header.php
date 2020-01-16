@@ -125,6 +125,11 @@
 		<!-- MD5 -->
 		<?= HTML::js_src('/js/md5.min.js') ?>
 		<?php endif ?>
+
+		<?php if (isset($REQUIRE_LIB['papaparse'])): ?>
+		<!-- CSV Parser -->
+		<?= HTML::js_src('/js/papaparse.min.js') ?>
+		<?php endif ?>
 		
 		<?php if (isset($REQUIRE_LIB['dialog'])): ?>
 		<!-- Bootstrap dialog -->
