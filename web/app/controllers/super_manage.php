@@ -43,6 +43,34 @@
 	};
 	$user_form->runAtServer();
 	
+	$pwoverride_form = new UOJForm('pwoverride');
+	$pwoverride_form->addInput('username','text','用户名','',
+		function($username){
+			if (!validateUsername($username)) {
+				return '用户名不合法';
+			}
+			if (!queryUser($username)) {
+				return '用户不存在';
+			}
+			return '';
+		},
+		null
+	);
+	$pwoverride_form->addInput('password','text','密码','',
+		function($password){
+			return '';
+		},
+		null
+	);
+	$pwoverride_form->handle=function(){
+		global $pwoverride_form;
+		$username=$_POST['username'];
+		$password=getPasswordToStore($_POST['password'], $username);
+		DB::query("update user_info set password = '" .$password. "' where username = '" .$username. "'");
+	};
+	$pwoverride_form->runAtServer();
+	
+	
 	$batchreg_form = new UOJForm('batchreg');
 	$batchreg_form->addTextArea('regsheet','注册信息','email,username,password',
 		function($text){
@@ -376,12 +404,16 @@ EOD;
 			<?php $user_form->printHTML(); ?>
 			<h3>批量注册</h3>
 			<?php $batchreg_form->printHTML(); ?>
-			<div class='text-center'><button type="button" id="button-batchreg-salty" name="salty-batchreg" value="salty-batchreg" class="btn btn-default">提交</button></div>
+			<div class='text-center'><button type="button" id="button-batchreg-salty" name="salty-batchreg" value="salty-batchreg" class="mt-2 btn btn-secondary">提交</button></div>
+			<h3>密码重置</h3>
+			<?php $pwoverride_form->printHTML(); ?>
+			<div class='text-center'><button type="button" id="button-pwoverride-salty" name="salty-pwoverride" value="salty-pwoverride" class="mt-2 btn btn-secondary">提交</button></div>
 			<h3>封禁名单</h3>
 			<?php echoLongTable($banlist_cols, 'user_info', "usergroup='B'", '', $banlist_header_row, $banlist_print_row, $banlist_config) ?>
 			<script type="text/javascript">
 				$(document).ready(function(){
 					$('#button-submit-batchreg').remove();
+					$('#button-submit-pwoverride').addClass('d-none');
 					$('#form-batchreg').append('<input type="hidden" name="submit-batchreg" value="batchreg">');
 					$('#button-batchreg-salty').click(function(e){
 						var text=$('#input-regsheet').val();
@@ -415,6 +447,14 @@ EOD;
 						$("#input-regsheet").val(json_data);
 						$('#form-batchreg').submit();
 						$("#input-regsheet").val(text);
+					});
+					
+					$('#button-pwoverride-salty').click(function(e){
+						var text=$('#input-password').val();
+						var salttext=md5(text, "<?= getPasswordClientSalt() ?>");
+						$('#input-password').val(salttext);
+						$('#button-submit-pwoverride').click();
+						$('#input-password').val(text);
 					});
 				});
 			</script>
