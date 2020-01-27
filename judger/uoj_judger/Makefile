@@ -18,6 +18,7 @@ EXE_CHECKER = \
 	builtin/checker/rcmp6 \
 	builtin/checker/rcmp9 \
 	builtin/checker/rncmp \
+	builtin/checker/noicmp \
 	builtin/checker/uncmp \
 	builtin/checker/wcmp \
 	builtin/checker/yesno

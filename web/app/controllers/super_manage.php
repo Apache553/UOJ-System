@@ -44,28 +44,28 @@
 	$user_form->runAtServer();
 	
 	$pwoverride_form = new UOJForm('pwoverride');
-	$pwoverride_form->addInput('username','text','用户名','',
-		function($username){
-			if (!validateUsername($username)) {
+	$pwoverride_form->addInput('pwusername','text','用户名','',
+		function($pwusername){
+			if (!validateUsername($pwusername)) {
 				return '用户名不合法';
 			}
-			if (!queryUser($username)) {
+			if (!queryUser($pwusername)) {
 				return '用户不存在';
 			}
 			return '';
 		},
 		null
 	);
-	$pwoverride_form->addInput('password','text','密码','',
-		function($password){
+	$pwoverride_form->addInput('pwpassword','text','密码','',
+		function($pwpassword){
 			return '';
 		},
 		null
 	);
 	$pwoverride_form->handle=function(){
 		global $pwoverride_form;
-		$username=$_POST['username'];
-		$password=getPasswordToStore($_POST['password'], $username);
+		$username=$_POST['pwusername'];
+		$password=getPasswordToStore($_POST['pwpassword'], $username);
 		DB::query("update user_info set password = '" .$password. "' where username = '" .$username. "'");
 	};
 	$pwoverride_form->runAtServer();
@@ -450,11 +450,11 @@ EOD;
 					});
 					
 					$('#button-pwoverride-salty').click(function(e){
-						var text=$('#input-password').val();
+						var text=$('#input-pwpassword').val();
 						var salttext=md5(text, "<?= getPasswordClientSalt() ?>");
-						$('#input-password').val(salttext);
+						$('#input-pwpassword').val(salttext);
 						$('#button-submit-pwoverride').click();
-						$('#input-password').val(text);
+						$('#input-pwpassword').val(text);
 					});
 				});
 			</script>
