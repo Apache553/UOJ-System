@@ -410,6 +410,8 @@ EOD;
 			<div class='text-center'><button type="button" id="button-pwoverride-salty" name="salty-pwoverride" value="salty-pwoverride" class="mt-2 btn btn-secondary">提交</button></div>
 			<h3>封禁名单</h3>
 			<?php echoLongTable($banlist_cols, 'user_info', "usergroup='B'", '', $banlist_header_row, $banlist_print_row, $banlist_config) ?>
+			<h3>管理员名单</h3>
+			<?php echoLongTable($banlist_cols, 'user_info', "usergroup='S'", '', $banlist_header_row, $banlist_print_row, $banlist_config) ?>
 			<script type="text/javascript">
 				$(document).ready(function(){
 					$('#button-submit-batchreg').remove();
